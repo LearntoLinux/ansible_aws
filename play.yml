@@ -1,0 +1,23 @@
+---
+ - name: Demo # Name of the Playbook
+   hosts: localhost  # Which hostgroup we are targetting
+   gather_facts: false # We are not gathering facts on hosts, this speeds this playbook up
+   vars_files:
+      - vars.yml # A file containing all the build information
+      - secrets.yml # Secrets file 
+   tasks:  # The list of tasks
+   - name: Build some AWS Servers
+     ec2_instance:
+       ec2_access_key: "{{ ec2_access_key }}" # You could just use the aws cli details also in ~/.aws/credentials
+       ec2_secret_key: "{{ ec2_secret_key }}" # You could just use the aws cli details also in ~/.aws/credentials
+       name: "{{ item.name }}" # Name of the EC2 Instance
+       vpc_subnet_id: "{{ item.subnetid }}" # Which subnet you would like this in, remove to let is select at random
+       instance_type: "{{ item.type }}" # The Type of instance you want to build
+       image_id: "{{ item.imageid }}" # The image ID you wish to use (You can get this ID from the choose an Amazin Machine IMage dialog)
+       key_name: "{{ sshkeyname }}" # Which SSH key you are assigning to your machines
+       security_group: "{{ item.sg}}" # Which Security Group do you want these machines on
+       user_data: "{{item.user_data}}"
+       region: "eu-west-2" # Which region are we building in 
+       state: started # started / stopped / absent - If you use absent you must pass instance_ids
+       wait: no # Pause until the machines are up (this is used for playbooks that then carry on going)
+     with_items: "{{ servers }}"
